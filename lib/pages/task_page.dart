@@ -12,6 +12,8 @@ class TaskPage extends StatefulWidget {
 
 class _TaskPageState extends State<TaskPage> {
   var descriptionController = TextEditingController();
+  final db = FirebaseFirestore.instance;
+  var justNotConcluded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +39,10 @@ class _TaskPageState extends State<TaskPage> {
                           child: const Text("Cancelar")),
                       TextButton(
                           onPressed: () async {
-                            var db = FirebaseFirestore.instance;
                             var task = TaskModel(
-                                description: "Tarefa 1", concluded: false);
-                            var doc =
-                                await db.collection("tasks").add(task.toJson());
+                                description: descriptionController.text,
+                                concluded: false);
+                            await db.collection("tasks").add(task.toJson());
                             Navigator.pop(context);
                           },
                           child: const Text("Salvar"))
@@ -64,27 +65,55 @@ class _TaskPageState extends State<TaskPage> {
                       "Apenas não concluidos",
                       style: TextStyle(fontSize: 18),
                     ),
-                    Switch(value: false, onChanged: (bool value) {})
+                    Switch(
+                        value: justNotConcluded,
+                        onChanged: (bool value) {
+                          justNotConcluded = value;
+                          setState(() {});
+                        })
                   ],
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                    itemCount: 5,
-                    itemBuilder: (BuildContext bc, int index) {
-                      var task = "";
-                      return Dismissible(
-                        onDismissed:
-                            (DismissDirection dismissDirection) async {},
-                        key: const Key("key"),
-                        child: ListTile(
-                          title: Text("title"),
-                          trailing: Switch(
-                            onChanged: (bool value) async {},
-                            value: false,
-                          ),
-                        ),
-                      );
+                child: StreamBuilder<QuerySnapshot>(
+                    stream: justNotConcluded
+                        ? db
+                            .collection("tasks")
+                            .where("concluded", isEqualTo: false)
+                            .snapshots()
+                        : db.collection("tasks").snapshots(),
+                    builder: (context, snapshot) {
+                      return !snapshot.hasData
+                          ? const CircularProgressIndicator()
+                          : ListView(
+                              children: snapshot.data!.docs.map((e) {
+                                var task = TaskModel.fromJson(
+                                    e.data() as Map<String, dynamic>);
+                                return Dismissible(
+                                  onDismissed: (DismissDirection
+                                      dismissDirection) async {
+                                    await db
+                                        .collection("tasks")
+                                        .doc(e.id)
+                                        .delete();
+                                  },
+                                  key: Key(e.id),
+                                  child: ListTile(
+                                    title: Text(task.description),
+                                    trailing: Switch(
+                                      onChanged: (bool value) async {
+                                        task.concluded = value;
+                                        await db
+                                            .collection("tasks")
+                                            .doc(e.id)
+                                            .update(task.toJson());
+                                      },
+                                      value: task.concluded,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            );
                     }),
               ),
             ],
