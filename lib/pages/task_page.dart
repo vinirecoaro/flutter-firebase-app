@@ -1,8 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfirebaseapp/model/task_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../model/task_model.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
