@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfirebaseapp/model/task_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
@@ -14,6 +15,19 @@ class _TaskPageState extends State<TaskPage> {
   var descriptionController = TextEditingController();
   final db = FirebaseFirestore.instance;
   var justNotConcluded = false;
+  String userId = "";
+
+  @override
+  void initState() {
+    super.initState();
+    loadUser();
+  }
+
+  loadUser() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    userId = prefs.getString('user_id')!;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +55,8 @@ class _TaskPageState extends State<TaskPage> {
                           onPressed: () async {
                             var task = TaskModel(
                                 description: descriptionController.text,
-                                concluded: false);
+                                concluded: false,
+                                userId: userId);
                             await db.collection("tasks").add(task.toJson());
                             Navigator.pop(context);
                           },
@@ -80,8 +95,12 @@ class _TaskPageState extends State<TaskPage> {
                         ? db
                             .collection("tasks")
                             .where("concluded", isEqualTo: false)
+                            .where("user_id", isEqualTo: userId)
                             .snapshots()
-                        : db.collection("tasks").snapshots(),
+                        : db
+                            .collection("tasks")
+                            .where("user_id", isEqualTo: userId)
+                            .snapshots(),
                     builder: (context, snapshot) {
                       return !snapshot.hasData
                           ? const CircularProgressIndicator()
@@ -103,6 +122,7 @@ class _TaskPageState extends State<TaskPage> {
                                     trailing: Switch(
                                       onChanged: (bool value) async {
                                         task.concluded = value;
+                                        task.changeDate = DateTime.now();
                                         await db
                                             .collection("tasks")
                                             .doc(e.id)

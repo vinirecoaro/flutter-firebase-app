@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutterfirebaseapp/pages/home/home_page.dart';
+import 'package:flutterfirebaseapp/pages/splash_screen/splash_screen_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(primaryColor: Colors.blue),
-      home: const HomePage(),
+      home: const SplashScreen(),
     );
   }
 }
