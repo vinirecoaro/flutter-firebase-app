@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../model/task_model.dart';
+import '../models/task_model.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
