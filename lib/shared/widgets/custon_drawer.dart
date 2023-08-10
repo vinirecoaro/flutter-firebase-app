@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfirebaseapp/pages/chat/chat_page.dart';
@@ -10,6 +11,7 @@ class CustonDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final remoteConfig = FirebaseRemoteConfig.instance;
     var nicknameController = TextEditingController();
+    FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
     return Drawer(
       child: ListView(
@@ -17,7 +19,8 @@ class CustonDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.task),
             title: const Text("Tarefas"),
-            onTap: () {
+            onTap: () async {
+              await analytics.logEvent(name: "tasks");
               Navigator.push(
                   context, MaterialPageRoute(builder: (_) => const TaskPage()));
             },
@@ -40,7 +43,8 @@ class CustonDrawer extends StatelessWidget {
                                 controller: nicknameController,
                               ),
                               TextButton(
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    await analytics.logEvent(name: "chat");
                                     nicknameController.text = "";
                                     Navigator.pop(context);
                                     Navigator.push(
@@ -62,7 +66,8 @@ class CustonDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.bug_report),
             title: const Text("Crashlytics"),
-            onTap: () {
+            onTap: () async {
+              await analytics.logEvent(name: "Exception");
               throw Exception();
             },
           ),
